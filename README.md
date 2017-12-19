@@ -1,73 +1,115 @@
-# Primo New UI Customization Docker Development Environment
+# Orbis Cascade Alliance primo-explore docker dev environment
+[![](https://images.microbadger.com/badges/version/alliance/oca-devenv-docker.svg)](https://microbadger.com/images/alliance/oca-devenv-docker "Get your own version badge on microbadger.com")
+[![](https://images.microbadger.com/badges/image/alliance/oca-devenv-docker.svg)](https://microbadger.com/images/alliance/oca-devenv-docker "Get your own image badge on microbadger.com")
 
-[![Build Status](https://travis-ci.org/thatbudakguy/primo-explore-devenv-docker.svg?branch=master)](https://travis-ci.org/thatbudakguy/primo-explore-devenv-docker) [![](https://images.microbadger.com/badges/version/watzek/primo-explore-devenv.svg)](http://microbadger.com/images/watzek/omeka "Get your own version badge on microbadger.com") [![](https://images.microbadger.com/badges/image/watzek/primo-explore-devenv.svg)](https://microbadger.com/images/watzek/omeka "Get your own image badge on microbadger.com")
+This docker image contains the Ex Libris primo-explore dev environment, along with preloaded copies of the Alliance central package and an empty view package. It can be used to rapidly develop primo customizations intended for Alliance use.
 
-## Downloading:
 
-ensure the latest versions of `docker` and `docker-compose` are installed.
+## Getting Started
 
-download the project with:
-```sh
-git clone https://github.com/thatbudakguy/primo-explore-devenv-docker.git
-```
-or download a zip file using the green download button above and unzip.
+These instructions will help you set up and use the docker image to develop primo customizations.
 
-`docker-compose.example.yml` contains an example configuration for the development environment. you will need to rename it `docker-compose.yml` and make some changes (detailed below) to start working.
+### Prerequisites
 
-## Usage:
+[Docker](https://www.docker.com/docker) and [docker-compose](https://docs.docker.com/compose/install/) are required.
 
 ### Setup
 
-you need a view code package to use the development environment. you can provide your own by downloading it from the "back office", or acquire a fresh one from [here](https://github.com/ExLibrisGroup/primo-explore-package).
+Let's assume we're starting development on a new customization and nothing has been written yet. We'll set up a new git repository for the customization and add a compose file:
 
-to add a view to the development environment, ensure that the line:
-```yml
-volumes:
-  - /path/to/my/view/code/:/home/node/primo-explore-devenv/custom/NAME_OF_VIEW
-```
-appears in your `docker-compose.yml`, where the path on the left is the absolute path to your view code folder.
-
-- to select a view, edit the `VIEW` property in `docker-compose.yml` to match the name you provided in the `volumes` stanza, e.g. `NAME_OF_VIEW`.
-- to select a proxy server to view live primo results, edit the `PROXY` property in `docker-compose.yml`.
-
-to start developing, open a terminal in this directory and run:
 ```sh
-docker-compose up
+$ git init primo-explore-my-customization
+$ cd primo-explore-my-customization
+$ touch docker-compose.yml
 ```
 
-- logs will be displayed in your terminal.
-- you can edit the files in your package's folder and changes will be made in real-time.
-- you can observe the view using a browser at `localhost:8003/primo-explore/search?vid=NAME_OF_VIEW`.
+We now have a new git repository containing a compose file we can use to manage our dev environment. Let's build out the compose file:
 
-### Changing views
+```yaml
+version: '3.1'
 
-first, ensure that the line:
-```yml
-volumes:
-  - /path/to/my/other/view/:/home/node/primo-explore-devenv/custom/NAME_OF_OTHER_VIEW
+services:
+  devenv:
+    image: alliance/oca-devenv-docker:latest
+    ports:
+      - 8003:8003
+    volumes:
+      - ./js/:/home/node/primo-explore-devenv/primo-explore/custom/ALLIANCE/js/
 ```
-appears in your `docker-compose.yml`, providing access to the new view.
 
-to change the currently displayed view, edit the `VIEW` property in `docker-compose.yml`, open a terminal in the project directory, and run:
+The `version` key is arbitrary; any version newer than 2 should suffice. Let's examine the `devenv` service, which will start up our dev environment.
+
+The `image` key is pointing to the docker image of our development environment. Docker will automatically download the latest version (`:latest`) if we don't have it when we run compose.
+
+The `ports` key is important - it lets us access the dev environment by mapping our post 8003 to the container's port 8003, on which the Ex Libris dev environment is running.
+
+The `volumes` key is where the magic happens. We are mounting the contents of a local directory called `js/` into the container and using it as the `js/` folder in the `ALLIANCE` view package.
+
+We want to mount at least two files into the view to start with - `bootstrap.js` and `module.js`. These files don't exist yet, so let's create them along with the `js/` folder:
+
 ```sh
-docker-compose restart
+$ mkdir js && cd js
+$ echo "var app = angular.module('viewCustom', ['myCustomization'])" > bootstrap.js
+$ echo "angular.module('myCustomization', [])" > module.js
 ```
 
-- making changes to `VIEW` or `PROXY` will require the above restart command to take effect.
-- you can add as many views as you like to the `volumes` stanza.
-- you can add a central package by mounting it in the above manner and naming it `CENTRAL_PACKAGE`.
+We now have declared a new customization module in `module.js` and imported that module to our view in `bootstrap.js`.
 
-### Creating packages
+### Usage
+Let's go back up to the project root and fire up our dev environment.
 
-first, make sure that the line:
-```yml
-volumes:
-  - ./:/home/node/primo-explore-devenv/packages
-```
-appears in your `docker-compose.yml` file, so that packages will appear outside the container.
-
-to create a package, open a terminal in this directory and run:
 ```sh
-docker-compose run server gulp create-package
+$ cd ..
+$ docker-compose up
 ```
-select a package when prompted. the zip file will appear in this folder.
+
+You'll see some output as docker pulls the latest version of the image, then the dev environment will start up:
+```
+Pulling devenv (alliance/oca-devenv-docker:latest)...
+latest: Pulling from alliance/oca-devenv-docker
+...
+Digest: sha256:b65bc76773694178474664f6b38082b541992c075dd796dcaa1fa58bdb8d703c
+Status: Downloaded newer image for alliance/oca-devenv-docker:latest
+Creating primoexploremycustomization_devenv_1 ...
+Creating primoexploremycustomization_devenv_1 ... done
+Attaching to primoexploremycustomization_devenv_1
+devenv_1  | [18:14:53] Using gulpfile /home/node/primo-explore-devenv/gulpfile.js
+...
+devenv_1  | [BS] Serving files from: primo-explore
+```
+
+Let's open a browser and visit <http://localhost:8003/primo-explore/search?vid=ALLIANCE>. We should see a generic primo-explore view (ALLIANCE). This view will only contain what we add to it in the dev environment.
+
+If we look back at our `js/` directory in the project folder, we'll notice a new file has appeared - `custom.js`. It should look like this:
+```js
+(function(){
+"use strict";
+'use strict';
+
+var app = angular.module('viewCustom', ['myCustomization']);
+
+angular.module('myCustomization', []);
+})();
+```
+
+We don't edit this file, but we can use it to see what the Ex Libris development environment is generating from our provided js files.
+
+Now, we can proceed to develop our customization by adding to our `module.js` file. When we make changes, the dev environment will refresh itself and re-create `custom.js` automatically.
+
+#### The central package
+The latest version of the alliance central package is included in the docker image. To test inheritance of new customizations, you can mount a new custom.js into the container's CENTRAL_PACKAGE view using a compose file like below:
+
+```yaml
+version: '3.1'
+
+services:
+  devenv:
+    image: alliance/oca-devenv-docker:latest
+    ports:
+      - 8003:8003
+    volumes:
+      - ./js/:/home/node/primo-explore-devenv/primo-explore/custom/ALLIANCE/js/
+      - ./central-custom.js:/home/node/primo-explore-devenv/primo-explore/custom/CENTRAL_PACKAGE/js/custom.js
+```
+
+You'll need to manually create `central-custom.js`. Editing it will not automatically refresh the dev environment, but you can manually refresh in your browser and the changes should take effect.
