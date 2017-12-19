@@ -1,0 +1,25 @@
+{
+  "name": "primo-explore-devenv-docker",
+  "version": "1.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alliance-pcsg/primo-explore-devenv-docker.git"
+  },
+  "author": {
+    "name": "Nick Budak",
+    "email": "budak@lclark.edu",
+    "url": "https://github.com/thatbudakguy"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alliance-pcsg/primo-explore-devenv-docker/issues"
+  },
+  "homepage": "https://github.com/alliance-pcsg/primo-explore-devenv-docker#readme",
+  "dependencies": {
+    "oca-central-package": "^1.1.0",
+    "oca-test-package": "^1.0.0",
+    "primo-explore-devenv": "^1.0.5"
+  },
+  "private": true
+}
