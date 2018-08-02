@@ -1,4 +1,7 @@
 # Orbis Cascade Alliance primo-explore docker dev environment
+
+[Please note: this repository is archived and is no longer updated.]
+
 [![](https://images.microbadger.com/badges/version/alliance/oca-devenv-docker.svg)](https://microbadger.com/images/alliance/oca-devenv-docker "Get your own version badge on microbadger.com")
 [![](https://images.microbadger.com/badges/image/alliance/oca-devenv-docker.svg)](https://microbadger.com/images/alliance/oca-devenv-docker "Get your own image badge on microbadger.com")
 
